@@ -76,3 +76,8 @@ class Etrx3Usb(object):
             return dict(jpan=dict(channel=int(channel), pid=pid, epid=epid))
 
         return dict()
+
+    def s_register_access(self, register):
+        register = register.zfill(2)
+        response = self.send_command("ATS{register:s}?".format(register=register))
+        return dict(sRegister=register, value=response.next())

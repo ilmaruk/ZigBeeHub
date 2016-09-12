@@ -6,7 +6,7 @@ import serial
 import time
 from flask import Flask
 
-from zigbee_hub.telegesis.etrx3usb import Etrx3Usb, CommandError
+from zigbee_hub.telegesis.r3xx_layout import Etrx3Usb, CommandError
 
 
 def return_success(data):
@@ -63,6 +63,11 @@ def main():
     @track_response_time
     def put_establish_pan():
         return coordinator.establish_pan()
+
+    @hub.route("/s_register_access/<register>", methods=["GET"])
+    @track_response_time
+    def get_s_register(register):
+        return coordinator.s_register_access(register)
 
     hub.run()
 

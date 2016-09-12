@@ -2,7 +2,7 @@ import pytest
 import serial
 
 from mock import Mock
-from zigbee_hub.telegesis.etrx3usb import Etrx3Usb, CommandError
+from zigbee_hub.telegesis.r3xx_layout import Etrx3Usb, CommandError
 
 
 @pytest.fixture
