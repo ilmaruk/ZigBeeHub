@@ -1,51 +1,70 @@
 import sys
+from functools import wraps
 
 import flask
 import serial
+import time
 from flask import Flask
 
-from zigbee_hub.telegesis.etrx3usb import Etrx3Usb
+from zigbee_hub.telegesis.etrx3usb import Etrx3Usb, CommandError
 
 
-def success(data):
+def return_success(data):
     data["success"] = True
     return flask.jsonify(data)
 
 
-def error(data):
+def return_error(data):
     data["success"] = False
     return flask.jsonify(data), 500
 
 
-def main():
-    app = Flask(__name__)
+def get_status(data):
+    return 200 if data["success"] else 500
 
-    coordinator = Etrx3Usb(serial.Serial("/dev/ttyUSB1", 19200, timeout=1))
 
-    @app.route("/command/<command>", methods=["GET"])
-    def execute_command(command):
+def track_response_time(f):
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        start = time.time()
+        data = dict()
         try:
-            return success(getattr(coordinator, command)())
-        except AttributeError:
-            return error(dict(error="invalid command: {}".format(command)))
+            data = f(*args, **kwargs)
+            data["success"] = True
+        except CommandError as error:
+            data = dict(success=False, error=error.get_code())
+        finally:
+            data["responseTime"] = time.time() - start
+            return flask.jsonify(data), get_status(data)
+    return wrapped
 
-    @app.route("/info", methods=["GET"])
+
+def main():
+    hub = Flask(__name__)
+
+    coordinator = Etrx3Usb(serial.Serial("/dev/ttyUSB0", 19200, timeout=1))
+
+    @hub.route("/info", methods=["GET"])
+    @track_response_time
     def get_info():
-        return flask.jsonify(coordinator.info())
+        return coordinator.info()
 
-    @app.route("/reset", methods=["GET", "PUT"])
+    @hub.route("/reset", methods=["GET", "PUT"])
+    @track_response_time
     def put_reset():
-        return flask.jsonify(coordinator.do_software_reset())
+        return coordinator.software_reset()
 
-    @app.route("/restore_factory_defaults", methods=["GET", "PUT"])
+    @hub.route("/restore_factory_defaults", methods=["GET", "PUT"])
+    @track_response_time
     def put_restore_factory_defaults():
-        return flask.jsonify(coordinator.do_restore_factory_defaults())
+        return coordinator.restore_factory_defaults()
 
-    @app.route("/establish_pan", methods=["GET", "PUT"])
+    @hub.route("/establish_pan", methods=["GET", "PUT"])
+    @track_response_time
     def put_establish_pan():
-        return flask.jsonify(coordinator.establish_pan())
+        return coordinator.establish_pan()
 
-    app.run()
+    hub.run()
 
     return 0
 

@@ -1,3 +1,36 @@
+def parse_jpan(jpan):
+    channel, pid, epid = jpan.split(":")[1].split(",")
+    return channel, pid, epid
+
+
+class CommandError(Exception):
+    def __init__(self, error_line):
+        self.code = int(error_line.split(":")[1])
+
+    def get_code(self):
+        return self.code
+
+
+class CommandResponse(object):
+    def __init__(self):
+        self.lines = list()
+        self.index = -1
+
+    def add_line(self, line):
+        self.lines.append(line)
+
+    def has_data(self):
+        return len(self.lines) > 0
+
+    def get(self, index):
+        self.index = index
+        return self.lines[index]
+
+    def next(self):
+        self.index += 1
+        return self.lines[self.index]
+
+
 class Etrx3Usb(object):
     def __init__(self, serial_conn):
         """
@@ -8,56 +41,38 @@ class Etrx3Usb(object):
 
     def send_command(self, command):
         self.serial_conn.write(command + "\r\n")
-        lines = []
+        response = CommandResponse()
         while True:
             line = self.serial_conn.readline().rstrip()
             if line == "OK":
                 break
             elif line.startswith("ERROR"):
-                return False, [line]
-            elif len(line) > 0:
-                lines.append(line)
+                raise CommandError(line)
+            elif len(line) > 0 and line != command:
+                response.add_line(line)
 
-        return True, lines
+        return response
 
     def info(self):
-        success, lines = self.send_command("ATI")
-        return {
-            "deviceName": lines[1],
-            "firmwareRevision": lines[2],
-            "ieeeIdentifier": lines[3]
-        }
+        response = self.send_command("ATI")
+        return dict(deviceName=response.next(), firmwareRevision=response.next(), ieeeIdentifier=response.next())
 
-    def do_software_reset(self):
-        success, lines = self.send_command("ATZ")
-        data = {}
-        if len(lines) > 1:
-            channel, pid, epid = lines[1].split(":")[1].split(",")
-            data["jpan"] = {
-                "channel": int(channel),
-                "pid": pid,
-                "epid": epid
-            }
+    def software_reset(self):
+        response = self.send_command("ATZ")
+        if response.has_data():
+            channel, pid, epid = parse_jpan(response.next())
+            return dict(jpan=dict(channel=int(channel), pid=pid, epid=epid))
 
-        return data
+        return dict()
 
-    def do_restore_factory_defaults(self):
+    def restore_factory_defaults(self):
         self.send_command("AT&F")
-        return {}
+        return dict()
 
     def establish_pan(self):
-        success, lines = self.send_command("AT+EN")
-        data = {}
-        if success and len(lines) > 1:
-            channel, pid, epid = lines[1].split(":")[1].split(",")
-            data["jpan"] = {
-                "channel": int(channel),
-                "pid": pid,
-                "epid": epid
-            }
-        elif not success:
-            _, error_code = lines[0].split(":")
-            data["error"] = int(error_code)
+        response = self.send_command("AT+EN")
+        if response.has_data():
+            channel, pid, epid = parse_jpan(response.next())
+            return dict(jpan=dict(channel=int(channel), pid=pid, epid=epid))
 
-        return data
-
+        return dict()
