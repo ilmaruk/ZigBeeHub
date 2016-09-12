@@ -29,7 +29,7 @@ def track_response_time(f):
         start = time.time()
         data = dict()
         try:
-            data = f(*args, **kwargs)
+            data["data"] = f(*args, **kwargs)
             data["success"] = True
         except CommandError as error:
             data = dict(success=False, error=error.get_code())
@@ -64,10 +64,11 @@ def main():
     def put_establish_pan():
         return coordinator.establish_pan()
 
-    @hub.route("/s_register_access/<register>", methods=["GET"])
+    @hub.route("/s_register_access/<register>", defaults={"bit": ""}, methods=["GET"])
+    @hub.route("/s_register_access/<register>/<bit>", methods=["GET"])
     @track_response_time
-    def get_s_register(register):
-        return coordinator.s_register_access(register)
+    def get_s_register(register, bit):
+        return coordinator.s_register_access(register, bit)
 
     hub.run()
 

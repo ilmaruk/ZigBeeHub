@@ -77,7 +77,7 @@ class Etrx3Usb(object):
 
         return dict()
 
-    def s_register_access(self, register):
+    def s_register_access(self, register, bit=""):
         register = register.zfill(2)
-        response = self.send_command("ATS{register:s}?".format(register=register))
-        return dict(sRegister=register, value=response.next())
+        response = self.send_command("ATS{register:s}{bit:s}?".format(register=register, bit=bit))
+        return dict(sRegister=register, bit=bit, value=response.next())
