@@ -1,76 +1,26 @@
+import logging
 import sys
-from functools import wraps
 
-import flask
 import serial
-import time
-from flask import Flask
+from Queue import Queue
 
-from zigbee_hub.telegesis.r3xx_layout import Etrx3Usb, CommandError
-
-
-def return_success(data):
-    data["success"] = True
-    return flask.jsonify(data)
-
-
-def return_error(data):
-    data["success"] = False
-    return flask.jsonify(data), 500
-
-
-def get_status(data):
-    return 200 if data["success"] else 500
-
-
-def track_response_time(f):
-    @wraps(f)
-    def wrapped(*args, **kwargs):
-        start = time.time()
-        data = dict()
-        try:
-            data["data"] = f(*args, **kwargs)
-            data["success"] = True
-        except CommandError as error:
-            data = dict(success=False, error=error.get_code())
-        finally:
-            data["responseTime"] = time.time() - start
-            return flask.jsonify(data), get_status(data)
-    return wrapped
+from zigbee_hub.http import setup_http_interface
+from zigbee_hub.serial_reader import SerialReader
+from zigbee_hub.telegesis.r3xx_layout import Etrx3Usb
 
 
 def main():
-    hub = Flask(__name__)
+    logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
 
-    coordinator = Etrx3Usb(serial.Serial("/dev/ttyUSB0", 19200, timeout=1))
+    dongle = serial.Serial("/dev/tty.SLAB_USBtoUART", 19200, timeout=1)
+    at_queue = Queue()
+    incoming_queue = Queue()
 
-    @hub.route("/info", methods=["GET"])
-    @track_response_time
-    def get_info():
-        return coordinator.info()
+    coordinator = Etrx3Usb(dongle, at_queue)
+    serial_reader = SerialReader(dongle, at_queue, incoming_queue)
+    serial_reader.start()
 
-    @hub.route("/reset", methods=["GET", "PUT"])
-    @track_response_time
-    def put_reset():
-        return coordinator.software_reset()
-
-    @hub.route("/restore_factory_defaults", methods=["GET", "PUT"])
-    @track_response_time
-    def put_restore_factory_defaults():
-        return coordinator.restore_factory_defaults()
-
-    @hub.route("/establish_pan", methods=["GET", "PUT"])
-    @track_response_time
-    def put_establish_pan():
-        return coordinator.establish_pan()
-
-    @hub.route("/s_register_access/<register>", defaults={"bit": ""}, methods=["GET"])
-    @hub.route("/s_register_access/<register>/<bit>", methods=["GET"])
-    @track_response_time
-    def get_s_register(register, bit):
-        return coordinator.s_register_access(register, bit)
-
-    hub.run()
+    setup_http_interface(coordinator).run()
 
     return 0
 

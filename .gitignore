@@ -1,5 +1,7 @@
 .idea/
 zigbee_devices.txt
+zigbee_server.py
+zigbee_hub.db
 
 ### Python template
 # Byte-compiled / optimized / DLL files
@@ -91,3 +93,4 @@ celerybeat-schedule
 # Rope project settings
 .ropeproject
 
+docs/
