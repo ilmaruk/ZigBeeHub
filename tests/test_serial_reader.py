@@ -7,17 +7,17 @@ from zigbee_hub.serial_reader import IncomingMessage
 
 @fixture
 def incoming_message():
-    return "RX:eui64,nwk_addr,profile_id,destination_endpoint,surce_endpoint,cluster_id,8:ciaociao"
+    return "RX:eui64,node_id,profile_id,destination_endpoint,surce_endpoint,cluster_id,8:ciaociao"
 
 
 @fixture
 def incoming_message_no_eui64():
-    return "RX:nwk_addr,profile_id,destination_endpoint,surce_endpoint,cluster_id,8:ciaociao"
+    return "RX:node_id,profile_id,destination_endpoint,surce_endpoint,cluster_id,8:ciaociao"
 
 
 @fixture
 def at_message():
-    return "eui64,nwk_addr,profile_id,destination_endpoint,surce_endpoint,cluster_id,8:ciaociao"
+    return "eui64,node_id,profile_id,destination_endpoint,surce_endpoint,cluster_id,8:ciaociao"
 
 
 def test_should_tell_is_incoming_message(incoming_message):

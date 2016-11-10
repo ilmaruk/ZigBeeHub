@@ -11,14 +11,14 @@ class Device(Base):
 
     euid64 = Column(String(16), primary_key=True)
     type = Column(String(3), nullable=True)
-    network_addr = Column(String(4), nullable=False)
+    node_id = Column(String(4), nullable=False)
 
 
 class Temperature(Base):
     __tablename__ = "temperatures"
 
     id = Column(BigInteger, primary_key=True)
-    network_addr = Column(String(4), nullable=False)
+    node_id = Column(String(4), nullable=False, index=True)
     date_time = Column(DateTime, default=func.now())
     value = Column(Float)
 

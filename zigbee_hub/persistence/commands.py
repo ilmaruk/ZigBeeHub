@@ -11,7 +11,7 @@ from zigbee_hub.persistence.entities import Device, Temperature, Heartbeat
 def register_device(eui64, node_id, type):
     device = Device()
     device.euid64 = eui64
-    device.network_addr = node_id
+    device.node_id = node_id
     device.type = type
     session.merge(device)
     try:
@@ -25,10 +25,10 @@ def register_device(eui64, node_id, type):
         return False
 
 
-def set_device_type(eid64, nwk_addr, dev_type):
+def set_device_type(eid64, node_id, dev_type):
     try:
         device = queries.get_device_by_pk(eid64)
-        device.network_addr = nwk_addr
+        device.node_id = node_id
         device.type = dev_type
         session.commit()
 
@@ -36,10 +36,10 @@ def set_device_type(eid64, nwk_addr, dev_type):
         session.rollback()
 
 
-def register_telemetry(nwk_addr, type, value):
+def register_telemetry(node_id, type, value):
     try:
         if type == "29":
-            temperature = Temperature(network_addr=nwk_addr, value=int(value, 16) / 100.)
+            temperature = Temperature(node_id=node_id, value=int(value, 16) / 100.)
             session.add(temperature)
             session.commit()
 

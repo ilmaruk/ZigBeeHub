@@ -34,23 +34,6 @@ def extract_data(prompt_type):
     return decorator
 
 
-# def new_node_parser(payload):
-#     nwk_addr, eui64, parent_nwk_addr = payload.split(",")
-#     logging.info("NEWNODE prompt received with data {:s}".format(dict(nwk_addr=nwk_addr, eui64=eui64,
-#                                                                       parent_nwk_addr=parent_nwk_addr)))
-#     commands.register_device(eui64, nwk_addr)
-
-
-# def received_raw_message_parser(payload):
-#     logging.debug(payload)
-#     headers, payload = payload.split(":")
-#     src_nw_addr, profile_id, dest_ep, src_ep, cluster_id, payload_size = headers.split(",")
-#     logging.info("RX prompt received with headers {:s}".format(dict(src_nw_addr=src_nw_addr, profile_id=profile_id,
-#                                                                     dest_ep=dest_ep, src_ep=src_ep,
-#                                                                     cluster_id=cluster_id, payload_size=payload_size)))
-#     logging.debug(" ".join("{:02X}".format(ord(val)) for val in payload))
-
-
 @extract_data(SleepEndDeviceJoin)
 def sleep_end_device_join(**kwargs):
     info = kwargs.get('prompt')
