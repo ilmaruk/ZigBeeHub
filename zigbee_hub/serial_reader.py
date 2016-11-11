@@ -71,11 +71,17 @@ class SerialReader(threading.Thread):
         self.at_queue = at_queue
         self.incoming_queue = incoming_queue
 
+        self._stop = False
+
     def run(self):
         pattern = re.compile(r"^[A-Za-z]+:")
         response = CommandResponse()
 
         while True:
+            if self._stop:
+                self.serial_conn.close()
+                return
+
             line = self.serial_conn.readline().rstrip()
             if line == "OK":
                 self.at_queue.put(response)
@@ -88,6 +94,9 @@ class SerialReader(threading.Thread):
                 raise CommandError(line)
             elif len(line) > 0:
                 response.add_line(line)
+
+    def stop(self):
+        self._stop = True
 
     @staticmethod
     def parse_prompt(prompt):
