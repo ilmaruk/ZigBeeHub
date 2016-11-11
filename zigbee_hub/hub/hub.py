@@ -21,14 +21,14 @@ class Hub(object):
         self.serial_conf = serial_conf
         self.http_conf = http_conf
 
-        dongle = serial.Serial(serial_conf.port, serial_conf.baud_rate, timeout=serial_conf.timeout)
+    def start(self):
+        dongle = serial.Serial(self.serial_conf.port, self.serial_conf.baud_rate, timeout=self.serial_conf.timeout)
         at_queue = Queue()
         incoming_queue = Queue()
 
-        self.coordinator = Etrx3Usb(dongle, at_queue)
-        self.serial_reader = SerialReader(dongle, at_queue, incoming_queue)
-        self.http_interface = setup_http_interface(self.coordinator)
+        coordinator = Etrx3Usb(dongle, at_queue)
+        serial_reader = SerialReader(dongle, at_queue, incoming_queue)
+        http_interface = setup_http_interface(coordinator)
 
-    def start(self):
-        self.serial_reader.start()
-        self.http_interface.run(host=self.http_conf.host, port=self.http_conf.port)
+        serial_reader.start()
+        http_interface.run(host=self.http_conf.host, port=self.http_conf.port)
