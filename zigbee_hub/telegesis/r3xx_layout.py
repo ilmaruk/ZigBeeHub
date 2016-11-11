@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+
 def parse_jpan(jpan):
     channel, pid, epid = jpan.split(":")[1].split(",")
     return channel, pid, epid
@@ -13,7 +16,8 @@ class Etrx3Usb(object):
         self.serial_queue = serial_queue
 
     def send_command(self, command, timeout=10):
-        self.serial_conn.write(command + "\r\n")
+        # Unicode string are not supported
+        self.serial_conn.write(str(command) + "\r\n")
         return self.serial_queue.get(True, timeout)
 
     def info(self):
@@ -45,6 +49,14 @@ class Etrx3Usb(object):
         response = self.send_command("ATS{register:s}{bit:s}?".format(register=register, bit=bit))
         return dict(sRegister=register, bit=bit, value=response.next())
 
-    def permit_join(self, seconds=60):
-        response = self.send_command("AT+PJOIN:{seconds:x}".format(seconds=seconds))
+    def permit_join(self, seconds=None, node_id=None):
+        command = 'AT+PJOIN'
+        params = []
+        if seconds is not None:
+            params.append('{:X}'.format(int(seconds)))
+            if node_id is not None:
+                params.append(node_id)
+        if params:
+            command = ':'.join([command, ','.join(params)])
+        response = self.send_command(command)
         return dict(value=response.next())

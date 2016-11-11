@@ -6,6 +6,8 @@ from zigbee_hub.persistence import commands
 
 SleepEndDeviceJoin = namedtuple('SleepEndDeviceJoin', ['ieee_address', 'node_id'])
 
+NotAcknowledged = namedtuple('NotAcknowledged', ['message_id'])
+
 ReportAttributeCommand = namedtuple(
     'ReportAttributeCommand', ['node_id', 'end_point', 'cluster_id', 'attribute_id',
                                'data_type', 'attribute_value'])
@@ -66,6 +68,11 @@ def enroll_request_command(**kwargs):
 def default_response(**kwargs):
     pass
 
+
+@extract_data(NotAcknowledged)
+def not_acknowledged(**kwargs):
+    pass
+
 PROMPT_PARSERS = {
     "SED": sleep_end_device_join,
     "REPORTATTR": report_attribute_command,
@@ -73,6 +80,7 @@ PROMPT_PARSERS = {
     "ARM": arm_command,
     "ZENROLLREQ": enroll_request_command,
     "DFTREP": default_response,
+    "NACK": not_acknowledged,
 }
 
 

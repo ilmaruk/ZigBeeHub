@@ -4,6 +4,8 @@ from functools import wraps
 
 import flask
 from flask import Flask
+from flask import request
+
 from zigbee_hub.serial_reader import CommandError
 
 
@@ -48,11 +50,12 @@ def setup_http_interface(coordinator):
     def put_establish_pan():
         return coordinator.establish_pan()
 
-    @http_interface.route("/permit_join", methods=["GET", "PUT"], defaults={'seconds': '60'})
-    @http_interface.route("/permit_join/<seconds>", methods=["GET", "PUT"])
+    @http_interface.route("/commands/permit_join", methods=["GET", "PUT"])
     @track_response_time
-    def put_permit_join(seconds):
-        return coordinator.permit_join(int(seconds))
+    def put_permit_join():
+        seconds = request.values.get('seconds')
+        node_id = request.values.get('node_id')
+        return coordinator.permit_join(seconds=seconds, node_id=node_id)
 
     @http_interface.route("/s_register_access/<register>", defaults={"bit": ""}, methods=["GET"])
     @http_interface.route("/s_register_access/<register>/<bit>", methods=["GET"])
