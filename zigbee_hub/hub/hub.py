@@ -53,7 +53,7 @@ class Hub(object):
 
     def stop(self):
         self.stop_serial_reader()
-        self.stop_http_interface()
+        # self.stop_http_interface()
 
     def stop_serial_reader(self):
         if self.serial_reader is not None:
