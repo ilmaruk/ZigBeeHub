@@ -45,10 +45,6 @@ class Etrx3Usb(object):
         response = self.send_command("ATS{register:s}{bit:s}?".format(register=register, bit=bit))
         return dict(sRegister=register, bit=bit, value=response.next())
 
-    # def scan_for_active_pans(self):
-    #     response = self.send_command("AT+PANSCAN")
-    #     return dict(response=response)  # TODO: parse response
-
     def permit_join(self, seconds=60):
         response = self.send_command("AT+PJOIN:{seconds:x}".format(seconds=seconds))
         return dict(value=response.next())
