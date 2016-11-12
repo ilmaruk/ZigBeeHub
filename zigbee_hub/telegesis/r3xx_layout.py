@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from zigbee_hub.utils import AtCommandBuilder
 
 
 def parse_jpan(jpan):
@@ -50,13 +51,9 @@ class Etrx3Usb(object):
         return dict(sRegister=register, bit=bit, value=response.next())
 
     def permit_join(self, seconds=None, node_id=None):
-        command = 'AT+PJOIN'
-        params = []
-        if seconds is not None:
-            params.append('{:X}'.format(int(seconds)))
-            if node_id is not None:
-                params.append(node_id)
-        if params:
-            command = ':'.join([command, ','.join(params)])
+        command = AtCommandBuilder('AT+PJOIN').\
+            add_optional_param('{:02X}', seconds).\
+            add_optional_param('{:s}', node_id).\
+            build()
         response = self.send_command(command)
         return dict(value=response.next())

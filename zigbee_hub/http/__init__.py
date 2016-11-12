@@ -55,7 +55,7 @@ def setup_http_interface(coordinator):
     def put_permit_join():
         seconds = request.values.get('seconds')
         node_id = request.values.get('node_id')
-        return coordinator.permit_join(seconds=seconds, node_id=node_id)
+        return coordinator.permit_join(seconds=None if seconds is None else int(seconds), node_id=node_id)
 
     @http_interface.route("/s_register_access/<register>", defaults={"bit": ""}, methods=["GET"])
     @http_interface.route("/s_register_access/<register>/<bit>", methods=["GET"])
