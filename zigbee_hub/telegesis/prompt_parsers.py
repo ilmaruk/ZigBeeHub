@@ -30,7 +30,7 @@ DefaultResponse = namedtuple(
 def extract_data(prompt_type):
     def decorator(func):
         def wrapper(**kwargs):
-            kwargs['prompt'] = prompt_type(*kwargs.get('payload').split(','))
+            kwargs['prompt'] = prompt_type(*kwargs.get('payload').split(':')[1].split(','))
             response = func(**kwargs)
             logging.info("Received {repr:s}".format(repr=str(kwargs.get('prompt'))))
             return response

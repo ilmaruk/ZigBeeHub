@@ -1,7 +1,7 @@
 .idea/
-zigbee_devices.txt
-zigbee_server.py
 zigbee_hub.db
+sonar.sh
+.sonar/
 
 ### Python template
 # Byte-compiled / optimized / DLL files
